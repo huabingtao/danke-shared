@@ -1,0 +1,36 @@
+{
+  "name": "@danke/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config.ts",
+    "./assets": "./src/assets.ts",
+    "./quality": "./src/quality.ts",
+    "./types": "./src/types.ts",
+    "./react": "./src/react/index.ts",
+    "./tokens/danke-theme.css": "./src/tokens/danke-theme.css",
+    "./tokens/danke-quality.css": "./src/tokens/danke-quality.css"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^20.14.12",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^28.1.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.10"
+  }
+}

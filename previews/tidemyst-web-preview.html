@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>潮汐秘境 · 解题器与战绩分享预览 | 弹壳战术门户</title>
+  <style>
+    :root {
+      /* danke-web 统一战术深蓝设计系统变量 + sio-tools 棋盘色彩映射 */
+      --bg-base: #0a0f1d;
+      --bg-card: #111a2e;
+      --bg-elevated: #17233d;
+      --bg-sunken: #0b1222;
+      --border-subtle: rgba(148, 163, 184, 0.16);
+      --border-strong: rgba(148, 163, 184, 0.28);
+      --text-base: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --row-selected: rgba(56, 189, 248, 0.15);
+
+      /* sio-tools 1:1 棋盘语义色标 */
+      --blue: #38bdf8;
+      --blue-rgb: 56 189 248;
+      --green: #22c55e;
+      --green-rgb: 34 197 94;
+      --red: #f43f5e;
+      --red-rgb: 244 63 94;
+      --yellow: #fccf0a;
+      --yellow-rgb: 252 207 10;
+      --orange: #fb923c;
+      --orange-rgb: 251 146 60;
+      --purple: #c084fc;
+      --textInfo: #2dd4bf;
+      --gray: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(56, 189, 248, 0.10), transparent 38%),
+        radial-gradient(circle at 88% 8%, rgba(34, 197, 94, 0.08), transparent 35%),
+        var(--bg-base);
+      color: var(--text-base);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-bottom: 48px;
+    }
+
+    /* 顶部站点统一导航条 */
+    .site-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(10, 15, 29, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .site-topbar-inner {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .back-home-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .back-home-pill:hover {
+      color: var(--text-base);
+      border-color: var(--blue);
+    }
+    .community-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(23, 35, 61, 0.7);
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .community-pill b {
+      color: var(--blue);
+      font-variant-numeric: tabular-nums;
+    }
+    .dot-live {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* 通用按钮体系 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-base);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .btn:hover:not(:disabled) {
+      border-color: var(--blue);
+      background: rgba(56, 189, 248, 0.12);
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .btn-sm {
+      height: 27px;
+      padding: 0 10px;
+      font-size: 12px;
+      border-radius: 5px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.1);
+      border-color: #7dd3fc;
+    }
+    .btn-gold {
+      background: rgba(252, 207, 10, 0.14);
+      border-color: rgba(252, 207, 10, 0.45);
+      color: var(--yellow);
+    }
+    .btn-gold:hover:not(:disabled) {
+      background: rgba(252, 207, 10, 0.24);
+      border-color: var(--yellow);
+    }
+    .btn-danger {
+      background: rgba(244, 63, 94, 0.10);
+      border-color: rgba(244, 63, 94, 0.35);
+      color: #fb7185;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: rgba(244, 63, 94, 0.20);
+      border-color: var(--red);
+    }
+    .badge-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: rgba(252, 207, 10, 0.22);
+      color: var(--yellow);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* 主容器 */
+    .page-shell {
+      max-width: 1220px;
+      margin: 16px auto 0;
+      padding: 0 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sio-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+    }
+
+    /* 顶部紧凑标题栏 */
+    .header-card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .header-title-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 860px;
+    }
+    .header-title-col h1 {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text-base);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .header-title-col h1 .sub-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--blue);
+    }
+    .header-help-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* =======================================================================
+       核心均衡双栏工作台布局（解决左轻右重：左栏 390px 饱满三合一 + 右栏自适应主舞台）
+       ======================================================================= */
+    .balanced-workbench {
+      display: grid;
+      grid-template-columns: 390px minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+    @media (max-width: 960px) {
+      .balanced-workbench {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .left-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .right-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-base);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .panel-section-title small {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    /* 左栏卡片 1：截图导入 + 新建空白盘面 */
+    .upload-dragger {
+      border: 1px dashed var(--border-strong);
+      border-radius: 9px;
+      background: rgba(11, 18, 34, 0.72);
+      padding: 14px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .upload-dragger:hover {
+      border-color: var(--blue);
+      background: rgba(56, 189, 248, 0.06);
+    }
+    .upload-icon {
+      font-size: 20px;
+      color: var(--blue);
+      line-height: 1;
+    }
+    .upload-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-base);
+    }
+    .upload-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    .unsure-banner {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(251, 146, 60, 0.12);
+      border: 1px solid rgba(251, 146, 60, 0.35);
+      color: var(--orange);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .create-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 7px;
+      background: var(--bg-sunken);
+      border: 1px solid var(--border-subtle);
+    }
+    .segmented-item {
+      padding: 4px 11px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.15s;
+    }
+    .segmented-item.active {
+      background: var(--bg-elevated);
+      color: var(--text-base);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+
+    /* 左栏卡片 2：1:1 RoomsTable 多房间队列 (铺满左栏宽度) */
+    .rooms-table-wrap {
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-sunken);
+      width: 100%;
+    }
+    .rooms-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .rooms-table th {
+      background: rgba(23, 35, 61, 0.65);
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    .rooms-table th:hover {
+      color: var(--text-base);
+    }
+    .rooms-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      white-space: nowrap;
+    }
+    .rooms-table tbody tr {
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .rooms-table tbody tr:hover {
+      background: rgba(56, 189, 248, 0.07);
+    }
+    .rooms-table tbody tr.selected td {
+      background: var(--row-selected) !important;
+    }
+    .rooms-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .room-btn {
+      background: transparent;
+      border: 0;
+      color: var(--text-base);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+    }
+    .txt-success { color: var(--green); font-weight: 600; }
+    .txt-danger { color: var(--red); font-weight: 600; }
+    .txt-warning { color: var(--yellow); }
+    .txt-info { color: var(--blue); }
+
+    /* 左栏卡片 3：本局实时战绩与结算分享面板 (撑起左栏下半部视觉重量) */
+    .left-battle-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(160deg, rgba(17, 26, 46, 0.96), rgba(12, 19, 36, 0.98));
+      border: 1px solid rgba(56, 189, 248, 0.22);
+    }
+    .battle-status-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .metrics-grid-2x2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .metric-box {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(10, 15, 29, 0.72);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .metric-box span {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .metric-box strong {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-base);
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-box small {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .left-battle-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .left-battle-actions .btn-full {
+      grid-column: 1 / -1;
+    }
+
+    /* =======================================================================
+       右栏：当前房间主舞台 (控制栏 + 居中放大棋盘 + 图例 + 玩法指南)
+       ======================================================================= */
+    .stage-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* 右栏顶部：房间标题 + 房间号/钻石数输入 + 分享进度/移除盘面 */
+    .stage-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .stage-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .board-title-str {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-base);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .board-left-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .counts-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+
+    .stage-controls-group {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .inline-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .num-input {
+      width: 86px;
+      height: 32px;
+      padding: 0 9px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-sunken);
+      color: var(--text-base);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      outline: none;
+    }
+    .num-input:focus {
+      border-color: var(--blue);
+    }
+
+    .status-msg {
+      font-size: 12px;
+      padding: 7px 12px;
+      border-radius: 7px;
+    }
+    .status-msg.danger {
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #fda4af;
+    }
+    .status-msg.warning {
+      background: rgba(251, 146, 60, 0.12);
+      border: 1px solid rgba(251, 146, 60, 0.35);
+      color: var(--orange);
+    }
+
+    /* 棋盘居中展示托盘（格子适度放大至 40px，大气稳重） */
+    .board-stage-WELL {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px 16px;
+      border-radius: 10px;
+      background: radial-gradient(circle at center, rgba(23, 35, 61, 0.55), rgba(8, 13, 24, 0.88));
+      border: 1px solid var(--border-subtle);
+    }
+    .Board_grid {
+      --gap: 3px;
+      --cell: min(40px, calc((100vw - 72px) / var(--columns) - var(--gap)));
+      display: grid;
+      grid-template-columns: repeat(var(--columns), var(--cell));
+      gap: var(--gap);
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(7, 11, 22, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    }
+    .MarkPicker_trigger {
+      display: block;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      position: relative;
+    }
+    .MarkPicker_trigger:hover > * {
+      filter: brightness(1.32);
+    }
+    .MarkPicker_trigger:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 1px;
+    }
+    .BoardCell_cell {
+      width: var(--cell, 40px);
+      height: var(--cell, 40px);
+      display: grid;
+      place-items: center;
+      border-radius: 4px;
+      background: var(--bg-elevated);
+      color: var(--text-base);
+      font-size: 13px;
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+      user-select: none;
+      transition: transform 0.08s;
+    }
+    .BoardCell_opened {
+      background: var(--bg-sunken);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .BoardCell_mineral {
+      background: rgb(var(--yellow-rgb) / 25%);
+      color: var(--yellow);
+      font-size: 15px;
+    }
+    .BoardCell_marked {
+      box-shadow: inset 0 0 0 1.5px var(--orange);
+    }
+    .BoardCell_certain {
+      box-shadow: inset 0 0 0 2px var(--green);
+      font-weight: 700;
+    }
+    .BoardCell_safe {
+      background: rgb(var(--red-rgb) / 15%);
+      color: var(--red);
+      font-size: 14px;
+    }
+    .BoardCell_local {
+      outline: 1px dashed var(--blue);
+      outline-offset: -1px;
+    }
+    .BoardCell_move {
+      box-shadow: inset 0 0 0 2px var(--text-base);
+      font-weight: 700;
+    }
+    .BoardCell_conflict {
+      box-shadow: inset 0 0 0 2px var(--red);
+    }
+
+    /* 盘面下方操作提示与清空行 */
+    .hint-clear-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 0 4px;
+    }
+
+    /* 1:1 视觉微缩单元格图例 (Legend) */
+    .legend-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(11, 18, 34, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.10);
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .legend-item .BoardCell_cell {
+      --cell: 24px;
+      font-size: 11px;
+    }
+
+    /* 1:1 玩法说明折叠面板 (Strategy Collapse) */
+    .strategy-collapse {
+      border: 1px solid rgba(241, 245, 249, 0.08);
+      border-radius: 10px;
+      background: rgba(241, 245, 249, 0.03);
+      overflow: hidden;
+    }
+    .strategy-header {
+      width: 100%;
+      padding: 10px 14px;
+      background: transparent;
+      border: 0;
+      color: var(--text-base);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .strategy-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .strategy-body {
+      padding: 4px 14px 12px;
+      border-top: 1px solid rgba(241, 245, 249, 0.06);
+    }
+    .strategy-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px 16px;
+      margin-top: 8px;
+    }
+    @media (max-width: 720px) {
+      .strategy-list {
+        grid-template-columns: 1fr;
+      }
+    }
+    .strategy-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+    .strategy-list li .BoardCell_cell {
+      --cell: 26px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    /* 1:1 MarkPicker Popover */
+    .mark-popover-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+    }
+    .mark-popover {
+      position: fixed;
+      z-index: 100;
+      background: #16223b;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 196px;
+    }
+    .mark-popover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .MarkPicker_options {
+      display: grid;
+      grid-template-columns: repeat(5, 34px);
+      gap: 5px;
+    }
+    .MarkPicker_answer {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 5px;
+      background: var(--bg-sunken);
+      color: var(--text-base);
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .MarkPicker_answer:hover {
+      border-color: var(--blue);
+      transform: translateY(-1px);
+    }
+    .MarkPicker_mineral {
+      border-color: var(--yellow);
+      background: rgb(var(--yellow-rgb) / 25%);
+      color: var(--yellow);
+    }
+    .MarkPicker_footer {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .MarkPicker_footer .btn {
+      flex: 1;
+    }
+
+    /* 模态框体系 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(5, 9, 18, 0.78);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 18px 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .modal-panel.wide {
+      max-width: 880px;
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .modal-head h2 {
+      font-size: 17px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .share-textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-sunken);
+      color: var(--blue);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      resize: none;
+    }
+    .share-footnote {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 3px solid var(--blue);
+      padding: 8px 10px;
+      border-radius: 4px;
+    }
+
+    .battle-modal-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .battle-modal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .records-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .record-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--bg-sunken);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .record-item label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .poster-box {
+      background: var(--bg-sunken);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .poster-canvas {
+      width: 100%;
+      max-width: 310px;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .toast-bar {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      z-index: 200;
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: #0284c7;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+      display: none;
+    }
+    .toast-bar.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部主站融合栏 -->
+  <header class="site-topbar">
+    <div class="site-topbar-inner">
+      <div class="brand-group">
+        <a href="javascript:void(0)" class="back-home-pill">← 返回弹壳战术门户</a>
+        <div class="community-pill" title="最近 90 秒活跃的匿名浏览器，同浏览器多标签只算一次">
+          <span><i class="dot-live"></i>在线人数 <b id="onlineCount">48</b></span>
+          <span>🏆 累计完成 <b id="completedCount">1,286</b> 局</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" class="btn" id="btnShareTool">🔗 分享工具</button>
+        <button type="button" class="btn btn-gold" id="btnOpenBattleCenter">
+          🏆 我的战绩与海报 <span class="badge-count" id="settledBadge">2</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <!-- 顶部横幅说明卡片 -->
+    <section class="sio-card">
+      <div class="header-card-row">
+        <div class="header-title-col">
+          <h1>
+            <span>潮汐秘境 · 解题与战绩终端</span>
+            <span class="sub-badge">均衡双栏工作台版</span>
+          </h1>
+          <p class="header-help-text">
+            上传你的盘面截图 — 一次多张也可以 — 或添加空白盘面，点击你在游戏中开过的每一格并标出它显示的内容。每个未开的格子都会算出藏有钻石的几率。
+          </p>
+        </div>
+        <button type="button" class="btn btn-sm" id="btnDemoScreenshot" title="一键生成模拟截图识别出的盘面（含存疑格、玩家旗子与手动标记）">
+          📸 演示截图识别效果
+        </button>
+      </div>
+    </section>
+
+    <!-- 核心均衡双栏工作台：左栏（截图/新建 + 房间优先级表 + 本局实时战绩） | 右栏（当前房间主棋盘 + 图例 + 玩法指南） -->
+    <div class="balanced-workbench">
+
+      <!-- ======================= 左栏 (390px)：房间管理与实时战绩 ======================= -->
+      <aside class="left-rail">
+        <!-- 左栏模块 1：截图读取 + 新建空白盘面 -->
+        <section class="sio-card">
+          <div class="panel-section-title">
+            <span>📥 导入截图 / 新建盘面</span>
+            <small>100% 本地识别</small>
+          </div>
+          <label class="upload-dragger" id="uploadDragger">
+            <input type="file" id="fileInput" accept="image/*" multiple style="display:none" />
+            <div class="upload-icon">⬆️</div>
+            <div class="upload-title">从截图读取盘面</div>
+            <div class="upload-sub">拖放、多选或 Ctrl+V 粘贴截图 — 只在你的设备上读取，绝不上传</div>
+          </label>
+          <div class="unsure-banner" id="unsureBanner" style="display:none; margin-top:8px;">
+            <span id="unsureText">有 2 格难以识别 — 请点击红框或异常格修正</span>
+            <button type="button" class="btn btn-sm" id="btnDismissUnsure">知道了</button>
+          </div>
+
+          <div class="create-bar">
+            <div class="segmented" role="radiogroup" aria-label="盘面尺寸">
+              <button type="button" class="segmented-item active" data-size="8">8×8</button>
+              <button type="button" class="segmented-item" data-size="10">10×10</button>
+              <button type="button" class="segmented-item" data-size="12">12×12</button>
+            </div>
+            <button type="button" class="btn btn-primary" id="btnAddEmptyBoard">＋ 添加空白盘面</button>
+          </div>
+        </section>
+
+        <!-- 左栏模块 2：1:1 多房间对比表 (RoomsTable) -->
+        <section class="sio-card">
+          <div class="panel-section-title">
+            <span>🗂️ 房间优先级列表</span>
+            <small>点击切换 · 按最佳概率排序</small>
+          </div>
+          <div class="rooms-table-wrap">
+            <table class="rooms-table">
+              <thead>
+                <tr>
+                  <th data-sort="room">房间</th>
+                  <th data-sort="left">剩余</th>
+                  <th data-sort="best" title="点击按最佳概率优先级排序">最佳 ⇅</th>
+                  <th data-sort="certain">100%</th>
+                  <th data-sort="safe">✕</th>
+                </tr>
+              </thead>
+              <tbody id="roomsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 左栏模块 3：本局实时战绩看板与一键晒战绩 (撑满左栏下半部，彻底解决左轻右重) -->
+        <section class="sio-card left-battle-card">
+          <div>
+            <div class="panel-section-title" style="margin-bottom:8px;">
+              <span>🏆 本局实时战绩</span>
+              <span class="battle-status-tag" id="currentRoundStatus">进行中</span>
+            </div>
+            <div class="metrics-grid-2x2">
+              <div class="metric-box">
+                <span>花费棋子</span>
+                <strong id="metricSpent">0</strong>
+                <small>已开宝石 + 数字格</small>
+              </div>
+              <div class="metric-box">
+                <span>找到宝石</span>
+                <strong id="metricFound">0 / 20</strong>
+                <small>当前房间已挖出</small>
+              </div>
+              <div class="metric-box">
+                <span>挖宝命中率</span>
+                <strong id="metricHitRate">0%</strong>
+                <small>找到宝石 ÷ 花费棋子</small>
+              </div>
+              <div class="metric-box">
+                <span>收集完成率</span>
+                <strong id="metricCollectRate">0%</strong>
+                <small>找到宝石 ÷ 房间总钻</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="left-battle-actions">
+            <button type="button" class="btn btn-gold btn-full" id="btnQuickSettleShare">
+              🏆 结束本局并生成 1080×1440 战绩海报
+            </button>
+            <button type="button" class="btn btn-sm" id="btnShareCurrentBattle">
+              🖼️ 晒当前战绩卡片
+            </button>
+            <button type="button" class="btn btn-sm" id="btnOpenHistoryModal">
+              📊 多局累计战绩 (<span id="settledInlineCount">2</span>)
+            </button>
+          </div>
+        </section>
+      </aside>
+
+      <!-- ======================= 右栏 (自适应主舞台)：当前盘面 + 图例 + 玩法指南 ======================= -->
+      <section class="right-stage">
+        <div class="sio-card stage-card">
+          <!-- 右栏顶部：当前房间标题 + 房号/钻石数编辑 + 分享进度/移除盘面 -->
+          <div class="stage-topbar">
+            <div class="stage-title-group">
+              <div class="board-title-str">
+                <span id="boardTitleText">房间 18 · 8×8</span>
+                <span class="board-left-pill" id="boardLeftText">剩余 18 / 20</span>
+              </div>
+              <div class="counts-row" id="certainSafeRow" style="display:none;"></div>
+            </div>
+
+            <div class="stage-controls-group">
+              <label class="inline-field">
+                <span>房间</span>
+                <input type="number" min="1" step="1" placeholder="—" class="num-input" id="inputRoomNumber" />
+              </label>
+              <label class="inline-field">
+                <span>盘面上的钻石</span>
+                <input type="number" min="1" max="144" step="1" class="num-input" id="inputGemsCount" />
+              </label>
+              <button type="button" class="btn btn-primary" id="btnShareProgress" title="生成包含当前盘面快照的 #progress= 链接发给公会队友">
+                📤 分享当前进度
+              </button>
+              <button type="button" class="btn btn-danger" id="btnRemoveBoard">
+                🗑️ 移除盘面
+              </button>
+            </div>
+          </div>
+
+          <!-- 状态警告行 (冲突 / 无解 / 旗子风险) -->
+          <div id="boardStatusAlerts" style="display:flex; flex-direction:column; gap:6px;"></div>
+
+          <!-- 居中放大的 1:1 棋盘主舞台 -->
+          <div class="board-stage-WELL">
+            <div class="Board_grid" id="boardGrid" style="--columns: 8;"></div>
+            <div class="hint-clear-row">
+              <span id="boardHintText">点击一个格子，选择游戏在它下面显示的内容 — 钻石或数字 — 地图就会重新计算。</span>
+              <button type="button" class="btn btn-sm" id="btnClearMarks">清空地图</button>
+            </div>
+          </div>
+
+          <!-- 1:1 真实微缩单元格图例 (Legend) -->
+          <div class="legend-wrap" id="boardLegend">
+            <div class="legend-item">
+              <span class="BoardCell_cell BoardCell_mineral">◆</span>
+              <span>已找到的钻石</span>
+            </div>
+            <div class="legend-item">
+              <span class="BoardCell_cell BoardCell_opened" style="color:var(--red);">3</span>
+              <span>已开启，周围钻石数</span>
+            </div>
+            <div class="legend-item">
+              <span class="BoardCell_cell" style="background:rgb(var(--green-rgb) / 54%);">57</span>
+              <span>藏有钻石的概率，%</span>
+            </div>
+            <div class="legend-item">
+              <span class="BoardCell_cell BoardCell_move" style="background:rgb(var(--green-rgb) / 38%);">35</span>
+              <span>下一个开这里</span>
+            </div>
+            <div class="legend-item">
+              <span class="BoardCell_cell BoardCell_certain" style="background:rgb(var(--green-rgb) / 85%);">100</span>
+              <span>确定有钻石</span>
+            </div>
+            <div class="legend-item">
+              <span class="BoardCell_cell BoardCell_safe">✕</span>
+              <span>确定为空（叉）</span>
+            </div>
+            <div class="legend-item">
+              <span class="BoardCell_cell BoardCell_marked"></span>
+              <span>玩家的旗子</span>
+            </div>
+            <div class="legend-item" id="legendLocalItem">
+              <span class="BoardCell_cell BoardCell_opened BoardCell_local" style="color:var(--green);">2</span>
+              <span>你标记的</span>
+            </div>
+            <div class="legend-item">
+              <span class="BoardCell_cell BoardCell_opened BoardCell_conflict" style="color:var(--purple);">4</span>
+              <span>不可能的数字 — 请检查你的标记</span>
+            </div>
+          </div>
+
+          <!-- 1:1 复刻 sio-tools 折叠面板：如何玩一张地图 (2×2 网格排布更紧凑美观) -->
+          <div class="strategy-collapse">
+            <button type="button" class="strategy-header" id="btnToggleStrategy" aria-expanded="true">
+              <span class="strategy-header-left">
+                <span style="color:var(--blue);">💡</span>
+                <span>如何玩一张地图</span>
+              </span>
+              <span id="strategyArrow">▾</span>
+            </button>
+            <div class="strategy-body" id="strategyBody">
+              <ul class="strategy-list">
+                <li>
+                  <span class="BoardCell_cell BoardCell_certain" style="background:rgb(var(--green-rgb) / 85%);">100</span>
+                  <span>100% 的格子一定有钻石 — 先开它们。</span>
+                </li>
+                <li>
+                  <span class="BoardCell_cell BoardCell_move" style="background:rgb(var(--green-rgb) / 38%);">35</span>
+                  <span>否则就开带圈的格子：概率最高的那个；概率相同时，选数字能透露最多周围信息的那个。</span>
+                </li>
+                <li>
+                  <span class="BoardCell_cell BoardCell_safe">✕</span>
+                  <span>✕ 格子一定是空的：开它永远找不到钻石。</span>
+                </li>
+                <li>
+                  <span class="BoardCell_cell"></span>
+                  <span>在未动过的地图上每个格子的概率都相同，所以圈会从离边缘远的地方开始，那里的数字能反映全部八个相邻格子。</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- 1:1 MarkPicker 点击格子弹出层 -->
+  <div class="mark-popover-backdrop" id="markBackdrop" style="display:none;"></div>
+  <div class="mark-popover" id="markPopover" style="display:none;" role="dialog" aria-label="这里有什么？">
+    <div class="mark-popover-header">
+      <span>这里有什么？</span>
+      <span id="popoverCellCoord" style="color:var(--blue);">R1C1</span>
+    </div>
+    <div class="MarkPicker_options" id="markOptionsGrid"></div>
+    <div class="MarkPicker_footer">
+      <button type="button" class="btn btn-sm" id="btnToggleFlag">⚑ 玩家的旗子</button>
+      <button type="button" class="btn btn-sm btn-danger" id="btnClearCellMark" style="display:none;">取消标记</button>
+    </div>
+  </div>
+
+  <!-- 原版功能 1：分享链接弹窗 (ShareDialog) -->
+  <div class="modal-overlay" id="shareDialogModal">
+    <div class="modal-panel" role="dialog" aria-label="分享链接">
+      <div class="modal-head">
+        <h2>🔗 分享链接</h2>
+        <button type="button" class="btn btn-sm" id="btnCloseShareDialog">✕ 关闭</button>
+      </div>
+      <strong id="shareDialogTitle" style="font-size:15px;">房间 18 的潮汐秘境进度</strong>
+      <p id="shareDialogDesc" style="font-size:13px; color:var(--text-secondary);">8×8 · 已发现 2/20 颗宝石</p>
+      <textarea class="share-textarea" id="shareDialogUrl" rows="3" readonly></textarea>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-primary" id="btnCopyShareUrl" style="flex:1;">📋 复制链接（可粘贴到微信/公会群）</button>
+      </div>
+      <p class="share-footnote" id="shareDialogFootnote">
+        链接保存这一刻的当前房间，后续修改不会同步。未确认的识别位置保持未知，截图不随链接发送。
+      </p>
+    </div>
+  </div>
+
+  <!-- 原版功能 2：我的战绩中心 + 多局累计勾选 + 1080×1440 战绩海报弹窗 -->
+  <div class="modal-overlay" id="battleCenterModal">
+    <div class="modal-panel wide" role="dialog" aria-label="我的战绩与海报">
+      <div class="modal-head">
+        <h2>🏆 我的战绩与 1080×1440 分享海报</h2>
+        <button type="button" class="btn btn-sm" id="btnCloseBattleCenter">✕ 关闭</button>
+      </div>
+      <div class="battle-modal-grid">
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="padding:12px; border-radius:10px; background:var(--bg-sunken); border:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong id="modalCurrentRoomTitle">当前房间 18</strong>
+              <span class="battle-status-tag" id="modalCurrentRoomStatus">进行中</span>
+            </div>
+            <p style="font-size:12px; color:var(--text-secondary);">
+              棋子消耗按已录入的宝石和数字格计算；推断、旗标与待核对结果不计入。
+            </p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary" id="btnSettleCurrentRound">✓ 结束本局并保存战绩</button>
+              <button type="button" class="btn" id="btnPreviewCurrentPoster">生成当前战绩海报</button>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="font-size:14px;">已结算战绩 (<span id="recordsCountLabel">2</span> 局)</strong>
+            <button type="button" class="btn btn-sm" id="btnExportJson">⬇️ 导出 JSON 备份</button>
+          </div>
+          <p style="font-size:12px; color:var(--text-secondary);">
+            手选要累计的局数，点击下方「分享累计战绩」即可合成多局总战绩海报：
+          </p>
+          <div class="records-list" id="settledRecordsList"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-top:4px;">
+            <span style="font-size:12px; color:var(--text-secondary);" id="selectedRecordsHint">已选 2 局</span>
+            <button type="button" class="btn btn-gold" id="btnShareAggregate">🏆 分享累计战绩海报</button>
+          </div>
+        </div>
+
+        <div class="poster-box">
+          <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+            <strong style="font-size:13px;" id="posterTitleLabel">战绩分享卡片预览</strong>
+            <span style="font-size:11px; color:var(--text-secondary);">1080 × 1440 高清海报</span>
+          </div>
+          <canvas id="posterCanvas" width="540" height="720" class="poster-canvas"></canvas>
+          <div style="display:flex; gap:8px; width:100%;">
+            <button type="button" class="btn btn-primary" id="btnDownloadPoster" style="flex:1;">⬇️ 下载海报图片</button>
+            <button type="button" class="btn" id="btnCopyBattleLink" style="flex:1;">📋 复制战绩链接</button>
+          </div>
+          <p style="font-size:11px; color:var(--text-secondary); text-align:center;">
+            下载图片后可发到微信群；微信内支持长按保存图片（游戏截图绝不上传）。
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-bar" id="toastBar"></div>
+
+  <script>
+    const NUMBER_COLORS = {
+      1: "var(--blue)",
+      2: "var(--green)",
+      3: "var(--red)",
+      4: "var(--purple)",
+      5: "var(--orange)",
+      6: "var(--textInfo)",
+      7: "var(--text-base)",
+      8: "var(--gray)"
+    };
+    const DEFAULT_GEMS = { 8: 20, 10: 30, 12: 45 };
+
+    let nextId = 4;
+    let selectedCreateSize = 8;
+    let sortPriority = true;
+    let activePopoverCell = null;
+
+    function createEmptyCells(size) {
+      return Array.from({ length: size * size }, () => ({
+        opened: false,
+        mineral: false,
+        number: null,
+        marked: false,
+        local: false
+      }));
+    }
+
+    const room1Cells = createEmptyCells(8);
+    room1Cells[9]  = { opened: true, mineral: true,  number: null, marked: false, local: false };
+    room1Cells[10] = { opened: true, mineral: false, number: 2,    marked: false, local: false };
+    room1Cells[11] = { opened: true, mineral: false, number: 0,    marked: false, local: false };
+    room1Cells[18] = { opened: true, mineral: false, number: 3,    marked: false, local: true  };
+    room1Cells[26] = { opened: true, mineral: true,  number: null, marked: false, local: false };
+    room1Cells[27] = { opened: true, mineral: false, number: 2,    marked: false, local: true  };
+    room1Cells[17] = { opened: false, mineral: false, number: null, marked: true, local: false };
+
+    const room2Cells = createEmptyCells(8);
+    room2Cells[27] = { opened: true, mineral: false, number: 1, marked: false, local: true };
+    room2Cells[28] = { opened: true, mineral: true,  number: null, marked: false, local: true };
+
+    let boards = [
+      { id: 1, room: 18, size: 8,  gems: 20, manual: false, cells: room1Cells },
+      { id: 2, room: 21, size: 8,  gems: 20, manual: true,  cells: room2Cells },
+      { id: 3, room: null, size: 10, gems: 30, manual: true,  cells: createEmptyCells(10) }
+    ];
+    let activeBoardId = 1;
+
+    let settledRecords = [
+      { id: "rec-1", roundId: "r-1", room: "12", size: 8,  spent: 26, found: 20, totalGems: 20, endedAt: "2026-11-15 15:40" },
+      { id: "rec-2", roundId: "r-2", room: "15", size: 10, spent: 35, found: 28, totalGems: 30, endedAt: "2026-11-15 16:10" }
+    ];
+    let selectedRecordIds = new Set(["rec-1", "rec-2"]);
+
+    function getNeighbors(idx, size) {
+      const r = Math.floor(idx / size), c = idx % size;
+      const out = [];
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+            out.push(nr * size + nc);
+          }
+        }
+      }
+      return out;
+    }
+
+    function solveBoard(board) {
+      const N = board.size * board.size;
+      const probs = new Array(N).fill(null);
+      const conflicts = [];
+      let mined = 0;
+
+      for (let i = 0; i < N; i++) {
+        const c = board.cells[i];
+        if (c.opened && c.mineral) mined++;
+      }
+
+      const leftGems = Math.max(0, board.gems - mined);
+      const unopened = [];
+      for (let i = 0; i < N; i++) {
+        if (!board.cells[i].opened) unopened.push(i);
+      }
+
+      const clues = [];
+      for (let i = 0; i < N; i++) {
+        const c = board.cells[i];
+        if (c.opened && !c.mineral && typeof c.number === "number") {
+          const nbs = getNeighbors(i, board.size);
+          let knownGems = 0;
+          const vars = [];
+          for (const nb of nbs) {
+            if (board.cells[nb].opened) {
+              if (board.cells[nb].mineral) knownGems++;
+            } else {
+              vars.push(nb);
+            }
+          }
+          const need = c.number - knownGems;
+          if (need < 0 || need > vars.length) conflicts.push(i);
+          clues.push({ cell: i, vars, need });
+        }
+      }
+
+      if (conflicts.length > 0 || leftGems > unopened.length) {
+        return {
+          probabilities: probs,
+          minerals: board.gems,
+          mined,
+          certain: [],
+          safe: [],
+          move: null,
+          best: 0,
+          scale: null,
+          conflicts,
+          invalid: true,
+          exhausted: false,
+          riskyFlags: []
+        };
+      }
+
+      const frontierSet = new Set();
+      clues.forEach(cl => cl.vars.forEach(v => frontierSet.add(v)));
+      const frontier = Array.from(frontierSet);
+      const outside = unopened.filter(i => !frontierSet.has(i));
+
+      function comb(n, k) {
+        if (k < 0 || k > n) return 0;
+        if (k === 0 || k === n) return 1;
+        let res = 1;
+        for (let i = 1; i <= k; i++) res = (res * (n - i + 1)) / i;
+        return res;
+      }
+
+      if (frontier.length === 0) {
+        const p = unopened.length > 0 ? Math.min(1, Math.max(0, leftGems / unopened.length)) : 0;
+        unopened.forEach(i => { probs[i] = p; });
+      } else {
+        const varIndex = new Map(frontier.map((v, idx) => [v, idx]));
+        const assignment = new Array(frontier.length).fill(0);
+        const hitWeights = new Array(frontier.length).fill(0);
+        let totalWeight = 0;
+        let outsideAccum = 0;
+
+        const clueChecks = clues.map(cl => ({
+          indices: cl.vars.map(v => varIndex.get(v)),
+          need: cl.need
+        }));
+
+        function dfs(pos, placed) {
+          if (placed > leftGems) return;
+          for (const ck of clueChecks) {
+            let sum = 0, rem = 0;
+            for (const vi of ck.indices) {
+              if (vi < pos) sum += assignment[vi];
+              else rem++;
+            }
+            if (sum > ck.need || sum + rem < ck.need) return;
+          }
+          if (pos === frontier.length) {
+            const remGems = leftGems - placed;
+            if (remGems < 0 || remGems > outside.length) return;
+            const w = comb(outside.length, remGems);
+            if (w <= 0) return;
+            totalWeight += w;
+            for (let i = 0; i < frontier.length; i++) {
+              if (assignment[i] === 1) hitWeights[i] += w;
+            }
+            if (outside.length > 0) outsideAccum += w * (remGems / outside.length);
+            return;
+          }
+          assignment[pos] = 0;
+          dfs(pos + 1, placed);
+          assignment[pos] = 1;
+          dfs(pos + 1, placed + 1);
+        }
+
+        dfs(0, 0);
+
+        if (totalWeight <= 0) {
+          return {
+            probabilities: probs,
+            minerals: board.gems,
+            mined,
+            certain: [],
+            safe: [],
+            move: null,
+            best: 0,
+            scale: null,
+            conflicts,
+            invalid: true,
+            exhausted: false,
+            riskyFlags: []
+          };
+        }
+
+        for (let i = 0; i < frontier.length; i++) {
+          probs[frontier[i]] = hitWeights[i] / totalWeight;
+        }
+        const outP = outside.length > 0 ? outsideAccum / totalWeight : 0;
+        for (const idx of outside) probs[idx] = outP;
+      }
+
+      const certain = [];
+      const safe = [];
+      let best = 0;
+      let low = 1, high = 0;
+
+      for (const idx of unopened) {
+        const p = probs[idx];
+        if (p === null) continue;
+        if (p > best) best = p;
+        if (p >= 1 - 1e-9) certain.push(idx);
+        else if (p <= 1e-9) safe.push(idx);
+        else {
+          if (p < low) low = p;
+          if (p > high) high = p;
+        }
+      }
+
+      let move = null;
+      let moveProb = -1;
+      let moveUnknownNbs = -1;
+      for (const idx of unopened) {
+        const p = probs[idx];
+        if (p === null || p >= 1 - 1e-9 || p <= 1e-9) continue;
+        const unknownNbs = getNeighbors(idx, board.size).filter(n => !board.cells[n].opened && probs[n] > 1e-9 && probs[n] < 1 - 1e-9).length;
+        if (p > moveProb + 1e-9 || (Math.abs(p - moveProb) <= 1e-9 && unknownNbs > moveUnknownNbs)) {
+          move = idx;
+          moveProb = p;
+          moveUnknownNbs = unknownNbs;
+        }
+      }
+
+      const riskyFlags = unopened.filter(idx => board.cells[idx].marked && frontierSet.has(idx) && (probs[idx] ?? 0) > 1e-9);
+
+      return {
+        probabilities: probs,
+        minerals: board.gems,
+        mined,
+        certain,
+        safe,
+        move,
+        best,
+        scale: low <= high ? { low, span: high - low } : null,
+        conflicts,
+        invalid: false,
+        exhausted: false,
+        riskyFlags
+      };
+    }
+
+    function cellHeatBackground(p, scale) {
+      if (p === null || p <= 1e-9) return "";
+      if (p >= 1 - 1e-9) return "rgb(var(--green-rgb) / 85%)";
+      const t = scale && scale.span > 1e-9 ? (p - scale.low) / scale.span : 0;
+      const alpha = Math.round(12 + Math.max(0, Math.min(1, t)) * 58);
+      return `rgb(var(--green-rgb) / ${alpha}%)`;
+    }
+
+    function formatBestPct(p) {
+      return p >= 1 - 1e-9 ? 100 : Math.min(99, Math.round(p * 100));
+    }
+
+    function roomName(b) {
+      return b.room !== null && b.room !== "" ? String(b.room) : `#${b.id}`;
+    }
+
+    function renderAll() {
+      const solvedMap = new Map();
+      boards.forEach(b => solvedMap.set(b.id, solveBoard(b)));
+
+      const tbody = document.getElementById("roomsTableBody");
+      tbody.innerHTML = "";
+      const displayBoards = [...boards];
+      if (sortPriority) {
+        displayBoards.sort((a, b) => {
+          const sa = solvedMap.get(a.id), sb = solvedMap.get(b.id);
+          return (sb.best - sa.best) || (sb.certain.length - sa.certain.length) || (sb.safe.length - sa.safe.length);
+        });
+      }
+
+      displayBoards.forEach(b => {
+        const s = solvedMap.get(b.id);
+        const tr = document.createElement("tr");
+        if (b.id === activeBoardId) tr.className = "selected";
+        tr.onclick = () => {
+          activeBoardId = b.id;
+          renderAll();
+        };
+
+        const bestVal = s.best > 0 ? `${formatBestPct(s.best)}%` : "—";
+        const bestClass = s.best >= 1 - 1e-9 ? "txt-success" : "";
+
+        tr.innerHTML = `
+          <td><button type="button" class="room-btn">${roomName(b)}</button></td>
+          <td>${s.minerals - s.mined}/${s.minerals}</td>
+          <td><span class="${bestClass}">${bestVal}</span></td>
+          <td><span class="txt-success">${s.certain.length || ""}</span></td>
+          <td><span class="txt-danger">${s.safe.length || ""}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const board = boards.find(b => b.id === activeBoardId) || boards[0];
+      if (!board) return;
+      activeBoardId = board.id;
+      const solved = solvedMap.get(board.id);
+
+      const inputRoom = document.getElementById("inputRoomNumber");
+      if (document.activeElement !== inputRoom) {
+        inputRoom.value = board.room ?? "";
+      }
+      const inputGems = document.getElementById("inputGemsCount");
+      if (document.activeElement !== inputGems) {
+        inputGems.value = board.gems;
+        inputGems.max = board.size * board.size;
+      }
+
+      document.getElementById("boardTitleText").textContent = `房间 ${roomName(board)} · ${board.size}×${board.size}`;
+      document.getElementById("boardLeftText").textContent = `剩余 ${solved.minerals - solved.mined} / ${solved.minerals}`;
+
+      const csRow = document.getElementById("certainSafeRow");
+      if (solved.certain.length > 0 || solved.safe.length > 0) {
+        csRow.style.display = "flex";
+        csRow.innerHTML = `
+          ${solved.certain.length > 0 ? `<span class="txt-success">确定有钻石：${solved.certain.length}</span>` : ""}
+          ${solved.safe.length > 0 ? `<span class="txt-danger">确定为空：${solved.safe.length}</span>` : ""}
+        `;
+      } else {
+        csRow.style.display = "none";
+      }
+
+      const alertsBox = document.getElementById("boardStatusAlerts");
+      alertsBox.innerHTML = "";
+      if (solved.invalid) {
+        const div = document.createElement("div");
+        div.className = "status-msg danger";
+        div.textContent = solved.conflicts.length > 0
+          ? "红框中的数字无法成立 — 请检查它周围你标记的格子"
+          : "没有任何排列符合这些数字 — 请检查你标记的格子";
+        alertsBox.appendChild(div);
+      }
+      if (solved.riskyFlags.length > 0) {
+        const div = document.createElement("div");
+        div.className = "status-msg warning";
+        div.textContent = `插旗但可能仍有钻石的格子：${solved.riskyFlags.length}`;
+        alertsBox.appendChild(div);
+      }
+
+      const grid = document.getElementById("boardGrid");
+      grid.style.setProperty("--columns", board.size);
+      grid.innerHTML = "";
+
+      board.cells.forEach((cell, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "MarkPicker_trigger";
+        btn.setAttribute("aria-label", "这里有什么？");
+
+        const span = document.createElement("span");
+        const classes = ["BoardCell_cell"];
+        const p = solved.probabilities[idx];
+
+        if (cell.opened) {
+          if (cell.mineral) {
+            classes.push("BoardCell_mineral");
+            span.textContent = "◆";
+          } else {
+            classes.push("BoardCell_opened");
+            if (cell.number && cell.number > 0) {
+              span.textContent = String(cell.number);
+              span.style.color = NUMBER_COLORS[cell.number];
+            } else {
+              span.textContent = "";
+            }
+          }
+          if (!board.manual && cell.local) classes.push("BoardCell_local");
+          if (solved.conflicts.includes(idx)) classes.push("BoardCell_conflict");
+        } else {
+          if (cell.marked) classes.push("BoardCell_marked");
+          if (p !== null) {
+            const bg = cellHeatBackground(p, solved.scale);
+            if (bg) span.style.background = bg;
+            if (p >= 1 - 1e-9) {
+              classes.push("BoardCell_certain");
+              span.textContent = "100";
+            } else if (p <= 1e-9) {
+              classes.push("BoardCell_safe");
+              span.textContent = "✕";
+            } else {
+              if (idx === solved.move) classes.push("BoardCell_move");
+              span.textContent = String(formatBestPct(p));
+            }
+          }
+        }
+
+        span.className = classes.join(" ");
+        btn.appendChild(span);
+        btn.onclick = (e) => openMarkPicker(e.currentTarget, board, idx);
+        grid.appendChild(btn);
+      });
+
+      const hasAnyMarks = board.cells.some(c => board.manual ? (c.opened || c.marked) : c.local);
+      document.getElementById("boardHintText").textContent = board.manual
+        ? "点击一个格子，选择游戏在它下面显示的内容 — 钻石或数字 — 地图就会重新计算。"
+        : "在游戏里开了一个格子？在这里点击它并选择它显示的内容 — 地图会立即重新计算，无需等待刷新。";
+      const btnClear = document.getElementById("btnClearMarks");
+      btnClear.textContent = board.manual ? "清空地图" : "清除我的标记";
+      btnClear.style.display = hasAnyMarks ? "inline-flex" : "none";
+
+      const spent = board.cells.filter(c => c.opened).length;
+      const found = board.cells.filter(c => c.opened && c.mineral).length;
+      const hitRate = spent > 0 ? Math.round((found / spent) * 100) : 0;
+      const collectRate = board.gems > 0 ? Math.round((found / board.gems) * 100) : 0;
+
+      document.getElementById("metricSpent").textContent = String(spent);
+      document.getElementById("metricFound").textContent = `${found} / ${board.gems}`;
+      document.getElementById("metricHitRate").textContent = `${hitRate}%`;
+      document.getElementById("metricCollectRate").textContent = `${collectRate}%`;
+      document.getElementById("settledBadge").textContent = String(settledRecords.length);
+      document.getElementById("settledInlineCount").textContent = String(settledRecords.length);
+    }
+
+    function openMarkPicker(targetEl, board, idx) {
+      activePopoverCell = { boardId: board.id, idx };
+      const r = Math.floor(idx / board.size) + 1;
+      const c = (idx % board.size) + 1;
+      document.getElementById("popoverCellCoord").textContent = `第 ${r} 行 · 第 ${c} 列`;
+
+      const optionsGrid = document.getElementById("markOptionsGrid");
+      optionsGrid.innerHTML = "";
+
+      const gemBtn = document.createElement("button");
+      gemBtn.type = "button";
+      gemBtn.className = "MarkPicker_answer MarkPicker_mineral";
+      gemBtn.textContent = "◆";
+      gemBtn.onclick = () => applyCellMark("mineral");
+      optionsGrid.appendChild(gemBtn);
+
+      for (let n = 0; n <= 8; n++) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "MarkPicker_answer";
+        b.textContent = String(n);
+        if (n > 0) b.style.color = NUMBER_COLORS[n];
+        b.onclick = () => applyCellMark(n);
+        optionsGrid.appendChild(b);
+      }
+
+      const cell = board.cells[idx];
+      const clearBtn = document.getElementById("btnClearCellMark");
+      clearBtn.style.display = (cell.opened || cell.marked) ? "inline-flex" : "none";
+
+      const popover = document.getElementById("markPopover");
+      const backdrop = document.getElementById("markBackdrop");
+      backdrop.style.display = "block";
+      popover.style.display = "flex";
+
+      const rect = targetEl.getBoundingClientRect();
+      const popWidth = 210;
+      const left = Math.min(window.innerWidth - popWidth - 12, Math.max(12, rect.left + rect.width / 2 - popWidth / 2));
+      const top = rect.bottom + 8 + 150 < window.innerHeight ? rect.bottom + 8 : Math.max(12, rect.top - 148);
+      popover.style.left = `${left}px`;
+      popover.style.top = `${top}px`;
+    }
+
+    function closeMarkPicker() {
+      document.getElementById("markBackdrop").style.display = "none";
+      document.getElementById("markPopover").style.display = "none";
+      activePopoverCell = null;
+    }
+
+    function applyCellMark(val) {
+      if (!activePopoverCell) return;
+      const board = boards.find(b => b.id === activePopoverCell.boardId);
+      if (!board) return;
+      const cell = board.cells[activePopoverCell.idx];
+
+      if (val === null) {
+        cell.opened = false;
+        cell.mineral = false;
+        cell.number = null;
+        cell.marked = false;
+        cell.local = false;
+      } else if (val === "flag") {
+        cell.opened = false;
+        cell.mineral = false;
+        cell.number = null;
+        cell.marked = !cell.marked;
+        cell.local = true;
+      } else if (val === "mineral") {
+        cell.opened = true;
+        cell.mineral = true;
+        cell.number = null;
+        cell.marked = false;
+        cell.local = true;
+      } else if (typeof val === "number") {
+        cell.opened = true;
+        cell.mineral = false;
+        cell.number = val;
+        cell.marked = false;
+        cell.local = true;
+      }
+      closeMarkPicker();
+      renderAll();
+    }
+
+    document.getElementById("markBackdrop").onclick = closeMarkPicker;
+    document.getElementById("btnToggleFlag").onclick = () => applyCellMark("flag");
+    document.getElementById("btnClearCellMark").onclick = () => applyCellMark(null);
+
+    document.querySelectorAll(".segmented-item").forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll(".segmented-item").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedCreateSize = Number(btn.dataset.size);
+      };
+    });
+
+    document.getElementById("btnAddEmptyBoard").onclick = () => {
+      const id = nextId++;
+      boards.push({
+        id,
+        room: null,
+        size: selectedCreateSize,
+        gems: DEFAULT_GEMS[selectedCreateSize],
+        manual: true,
+        cells: createEmptyCells(selectedCreateSize)
+      });
+      activeBoardId = id;
+      renderAll();
+      showToast(`已添加 ${selectedCreateSize}×${selectedCreateSize} 空白盘面`);
+    };
+
+    document.getElementById("inputRoomNumber").oninput = (e) => {
+      const b = boards.find(x => x.id === activeBoardId);
+      if (!b) return;
+      const v = e.target.value.trim();
+      b.room = v === "" ? null : Math.max(1, parseInt(v, 10) || 1);
+      renderAll();
+    };
+
+    document.getElementById("inputGemsCount").oninput = (e) => {
+      const b = boards.find(x => x.id === activeBoardId);
+      if (!b) return;
+      const v = parseInt(e.target.value, 10);
+      if (!isNaN(v) && v >= 1 && v <= b.size * b.size) {
+        b.gems = v;
+        renderAll();
+      }
+    };
+
+    document.getElementById("btnRemoveBoard").onclick = () => {
+      if (boards.length <= 1) {
+        boards[0].cells = createEmptyCells(boards[0].size);
+        renderAll();
+        showToast("已重置最后一个盘面");
+        return;
+      }
+      boards = boards.filter(b => b.id !== activeBoardId);
+      activeBoardId = boards[0].id;
+      renderAll();
+      showToast("已移除盘面");
+    };
+
+    document.getElementById("btnClearMarks").onclick = () => {
+      const b = boards.find(x => x.id === activeBoardId);
+      if (!b) return;
+      if (b.manual) {
+        b.cells = createEmptyCells(b.size);
+      } else {
+        b.cells.forEach(c => {
+          if (c.local) {
+            c.opened = false;
+            c.mineral = false;
+            c.number = null;
+            c.local = false;
+          }
+        });
+      }
+      renderAll();
+      showToast(b.manual ? "已清空地图" : "已清除你手动追加的标记");
+    };
+
+    function triggerDemoScreenshotImport() {
+      const id = nextId++;
+      const cells = createEmptyCells(8);
+      cells[0]  = { opened: true, mineral: false, number: 1, marked: false, local: false };
+      cells[1]  = { opened: true, mineral: true,  number: null, marked: false, local: false };
+      cells[2]  = { opened: true, mineral: false, number: 2, marked: false, local: false };
+      cells[8]  = { opened: false, mineral: false, number: null, marked: true, local: false };
+      cells[10] = { opened: true, mineral: false, number: 3, marked: false, local: true };
+      cells[18] = { opened: true, mineral: true,  number: null, marked: false, local: false };
+      boards.push({
+        id,
+        room: 24,
+        size: 8,
+        gems: 20,
+        manual: false,
+        cells
+      });
+      activeBoardId = id;
+      document.getElementById("unsureBanner").style.display = "flex";
+      renderAll();
+      showToast("已从截图识别出「房间 24 · 8×8」盘面");
+    }
+
+    document.getElementById("btnDemoScreenshot").onclick = triggerDemoScreenshotImport;
+    document.getElementById("fileInput").onchange = (e) => {
+      if (e.target.files && e.target.files.length > 0) triggerDemoScreenshotImport();
+    };
+    document.getElementById("btnDismissUnsure").onclick = () => {
+      document.getElementById("unsureBanner").style.display = "none";
+    };
+
+    document.getElementById("btnToggleStrategy").onclick = () => {
+      const body = document.getElementById("strategyBody");
+      const arrow = document.getElementById("strategyArrow");
+      const hidden = body.style.display === "none";
+      body.style.display = hidden ? "block" : "none";
+      arrow.textContent = hidden ? "▾" : "▸";
+    };
+
+    function encodeProgressLink(board) {
+      const payload = {
+        v: 1,
+        r: roomName(board),
+        s: board.size,
+        g: board.gems,
+        c: board.cells.map(c => c.opened ? (c.mineral ? "G" : String(c.number ?? 0)) : (c.marked ? "F" : "."))
+      };
+      const token = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      return `https://danke.guaguahub.cn/tidemyst#progress=${token}`;
+    }
+
+    function openShareModal(kind) {
+      const board = boards.find(b => b.id === activeBoardId) || boards[0];
+      const modal = document.getElementById("shareDialogModal");
+      const titleEl = document.getElementById("shareDialogTitle");
+      const descEl = document.getElementById("shareDialogDesc");
+      const urlEl = document.getElementById("shareDialogUrl");
+      const footEl = document.getElementById("shareDialogFootnote");
+
+      if (kind === "progress" && board) {
+        const found = board.cells.filter(c => c.opened && c.mineral).length;
+        titleEl.textContent = `房间 ${roomName(board)} 的潮汐秘境进度`;
+        descEl.textContent = `${board.size}×${board.size} · 已发现 ${found}/${board.gems} 颗宝石`;
+        urlEl.value = encodeProgressLink(board);
+        footEl.style.display = "block";
+      } else {
+        titleEl.textContent = "潮汐秘境 · 宝石推理助手";
+        descEl.textContent = "录入棋盘或读取游戏截图，推算宝石概率与下一步位置。";
+        urlEl.value = "https://danke.guaguahub.cn/tidemyst";
+        footEl.style.display = "none";
+      }
+      modal.classList.add("open");
+    }
+
+    document.getElementById("btnShareProgress").onclick = () => openShareModal("progress");
+    document.getElementById("btnShareTool").onclick = () => openShareModal("tool");
+    document.getElementById("btnCloseShareDialog").onclick = () => {
+      document.getElementById("shareDialogModal").classList.remove("open");
+    };
+    document.getElementById("btnCopyShareUrl").onclick = async () => {
+      const url = document.getElementById("shareDialogUrl").value;
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {}
+      showToast("链接已复制，可粘贴到微信或公会群！");
+    };
+
+    let currentPosterData = null;
+
+    function getCurrentBoardBattle(board, kind = "progress") {
+      const spent = board.cells.filter(c => c.opened).length;
+      const found = board.cells.filter(c => c.opened && c.mineral).length;
+      return {
+        kind,
+        title: kind === "final" ? `房间 ${roomName(board)} · 本局最终战绩` : `房间 ${roomName(board)} · 当前实时战绩`,
+        subtitle: `${board.size}×${board.size} 盘面 · 2026-11-15`,
+        spent,
+        found,
+        totalGems: board.gems,
+        rounds: 1
+      };
+    }
+
+    function getAggregateBattle() {
+      const list = settledRecords.filter(r => selectedRecordIds.has(r.id));
+      const spent = list.reduce((s, r) => s + r.spent, 0);
+      const found = list.reduce((s, r) => s + r.found, 0);
+      const totalGems = list.reduce((s, r) => s + r.totalGems, 0);
+      return {
+        kind: "aggregate",
+        title: `潮汐秘境 · ${list.length} 局累计战绩`,
+        subtitle: `包含房间 ${list.map(r => r.room).join("、")} · 2026-11-15`,
+        spent,
+        found,
+        totalGems,
+        rounds: list.length
+      };
+    }
+
+    function drawBattlePoster(data) {
+      currentPosterData = data;
+      const canvas = document.getElementById("posterCanvas");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width, H = canvas.height;
+
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, "#0a0f1d");
+      grad.addColorStop(0.55, "#131f3a");
+      grad.addColorStop(1, "#090d18");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.14)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(22, 22, W - 44, H - 44);
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "bold 15px sans-serif";
+      ctx.fillText("DANKE.GUAGUAHUB.CN · 潮汐秘境战术终端", 44, 62);
+
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "bold 28px sans-serif";
+      ctx.fillText(data.title, 44, 108);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "15px sans-serif";
+      ctx.fillText(data.subtitle, 44, 136);
+
+      const hitRate = data.spent > 0 ? Math.round((data.found / data.spent) * 100) : 0;
+      const collectRate = data.totalGems > 0 ? Math.round((data.found / data.totalGems) * 100) : 0;
+
+      const cards = [
+        { label: "花费棋子", value: `${data.spent}`, sub: "已开启格数", color: "#38bdf8" },
+        { label: "找到宝石", value: `${data.found} / ${data.totalGems}`, sub: `共 ${data.rounds} 局统计`, color: "#fccf0a" },
+        { label: "挖宝命中率", value: `${hitRate}%`, sub: "找到宝石 ÷ 花费棋子", color: "#22c55e" },
+        { label: "收集完成率", value: `${collectRate}%`, sub: "找到宝石 ÷ 房间总钻", color: "#c084fc" }
+      ];
+
+      cards.forEach((c, idx) => {
+        const col = idx % 2, row = Math.floor(idx / 2);
+        const x = 44 + col * 232;
+        const y = 168 + row * 142;
+        ctx.fillStyle = "rgba(17, 26, 46, 0.92)";
+        ctx.fillRect(x, y, 218, 124);
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.25)";
+        ctx.strokeRect(x, y, 218, 124);
+
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "14px sans-serif";
+        ctx.fillText(c.label, x + 18, y + 32);
+
+        ctx.fillStyle = c.color;
+        ctx.font = "bold 32px sans-serif";
+        ctx.fillText(c.value, x + 18, y + 76);
+
+        ctx.fillStyle = "#64748b";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(c.sub, x + 18, y + 104);
+      });
+
+      ctx.fillStyle = "rgba(56, 189, 248, 0.08)";
+      ctx.fillRect(44, 468, W - 88, 74);
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+      ctx.strokeRect(44, 468, W - 88, 74);
+
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "bold 16px sans-serif";
+      const badgeText = hitRate >= 65 ? "🌟 欧皇附体 · 精准排雷大师" : hitRate >= 40 ? "🎯 稳健推进 · 概率精算专家" : "🔍 步步为营 · 深度排雷开拓者";
+      ctx.fillText(badgeText, 62, 498);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "13px sans-serif";
+      ctx.fillText("每一枚棋子都有精确概率支撑 · 扫码体验同款潮汐秘境解题器", 62, 524);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(44, 566, W - 88, 110);
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.2)";
+      ctx.strokeRect(44, 566, W - 88, 110);
+
+      const qx = W - 138, qy = 578, qs = 86;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(qx, qy, qs, qs);
+      ctx.fillStyle = "#0a0f1d";
+      for (let r = 0; r < 7; r++) {
+        for (let c = 0; c < 7; c++) {
+          if ((r + c) % 2 === 0 || (r < 2 && c < 2) || (r < 2 && c > 4) || (r > 4 && c < 2)) {
+            ctx.fillRect(qx + 8 + c * 10, qy + 8 + r * 10, 8, 8);
+          }
+        }
+      }
+
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "bold 16px sans-serif";
+      ctx.fillText("弹壳特攻队 · 潮汐秘境助手", 64, 604);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "13px sans-serif";
+      ctx.fillText("长按识别二维码或复制链接查看这局战绩", 64, 630);
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "12px monospace";
+      ctx.fillText("https://danke.guaguahub.cn/tidemyst", 64, 654);
+
+      document.getElementById("posterTitleLabel").textContent = data.title;
+    }
+
+    function renderSettledRecordsList() {
+      const container = document.getElementById("settledRecordsList");
+      container.innerHTML = "";
+      document.getElementById("recordsCountLabel").textContent = String(settledRecords.length);
+
+      settledRecords.slice().reverse().forEach(r => {
+        const div = document.createElement("div");
+        div.className = "record-item";
+        const hit = r.spent > 0 ? Math.round((r.found / r.spent) * 100) : 0;
+        div.innerHTML = `
+          <label>
+            <input type="checkbox" data-rec-id="${r.id}" ${selectedRecordIds.has(r.id) ? "checked" : ""} />
+            <div>
+              <strong>房间 ${r.room} · ${r.size}×${r.size}</strong>
+              <div style="font-size:11px; color:var(--text-secondary);">
+                花费 ${r.spent} · 宝石 ${r.found}/${r.totalGems} · 命中 ${hit}% · ${r.endedAt}
+              </div>
+            </div>
+          </label>
+          <button type="button" class="btn btn-sm" data-share-rec="${r.id}">分享这局</button>
+        `;
+        container.appendChild(div);
+      });
+
+      container.querySelectorAll("input[type=checkbox]").forEach(cb => {
+        cb.onchange = () => {
+          const id = cb.dataset.recId;
+          if (cb.checked) selectedRecordIds.add(id);
+          else selectedRecordIds.delete(id);
+          document.getElementById("selectedRecordsHint").textContent = `已选 ${selectedRecordIds.size} 局`;
+        };
+      });
+
+      container.querySelectorAll("button[data-share-rec]").forEach(btn => {
+        btn.onclick = () => {
+          const rec = settledRecords.find(x => x.id === btn.dataset.shareRec);
+          if (!rec) return;
+          drawBattlePoster({
+            kind: "final",
+            title: `房间 ${rec.room} · 最终战绩`,
+            subtitle: `${rec.size}×${rec.size} 盘面 · ${rec.endedAt}`,
+            spent: rec.spent,
+            found: rec.found,
+            totalGems: rec.totalGems,
+            rounds: 1
+          });
+        };
+      });
+
+      document.getElementById("selectedRecordsHint").textContent = `已选 ${selectedRecordIds.size} 局`;
+    }
+
+    function openBattleCenter(initialMode = "current") {
+      const board = boards.find(b => b.id === activeBoardId) || boards[0];
+      document.getElementById("modalCurrentRoomTitle").textContent = `当前房间 ${roomName(board)} (${board.size}×${board.size})`;
+      renderSettledRecordsList();
+
+      if (initialMode === "aggregate" && selectedRecordIds.size > 0) {
+        drawBattlePoster(getAggregateBattle());
+      } else {
+        drawBattlePoster(getCurrentBoardBattle(board, initialMode));
+      }
+      document.getElementById("battleCenterModal").classList.add("open");
+    }
+
+    document.getElementById("btnOpenBattleCenter").onclick = () => openBattleCenter("progress");
+    document.getElementById("btnShareCurrentBattle").onclick = () => openBattleCenter("progress");
+    document.getElementById("btnOpenHistoryModal").onclick = () => openBattleCenter("aggregate");
+    document.getElementById("btnQuickSettleShare").onclick = () => {
+      const board = boards.find(b => b.id === activeBoardId) || boards[0];
+      settleBoardRound(board);
+      openBattleCenter("final");
+    };
+    document.getElementById("btnCloseBattleCenter").onclick = () => {
+      document.getElementById("battleCenterModal").classList.remove("open");
+    };
+
+    function settleBoardRound(board) {
+      const spent = board.cells.filter(c => c.opened).length;
+      const found = board.cells.filter(c => c.opened && c.mineral).length;
+      const recId = `rec-${board.id}`;
+      const existing = settledRecords.find(r => r.id === recId);
+      const nowStr = "2026-11-15 17:15";
+      if (existing) {
+        existing.room = roomName(board);
+        existing.spent = spent;
+        existing.found = found;
+        existing.totalGems = board.gems;
+        existing.endedAt = nowStr;
+      } else {
+        settledRecords.push({
+          id: recId,
+          roundId: recId,
+          room: roomName(board),
+          size: board.size,
+          spent,
+          found,
+          totalGems: board.gems,
+          endedAt: nowStr
+        });
+        selectedRecordIds.add(recId);
+      }
+      document.getElementById("currentRoundStatus").textContent = "已结算";
+      document.getElementById("modalCurrentRoomStatus").textContent = "已结算";
+      renderAll();
+      renderSettledRecordsList();
+      showToast("本局最终战绩已保存并生成分享海报！");
+    }
+
+    document.getElementById("btnSettleCurrentRound").onclick = () => {
+      const board = boards.find(b => b.id === activeBoardId) || boards[0];
+      settleBoardRound(board);
+      drawBattlePoster(getCurrentBoardBattle(board, "final"));
+    };
+
+    document.getElementById("btnPreviewCurrentPoster").onclick = () => {
+      const board = boards.find(b => b.id === activeBoardId) || boards[0];
+      drawBattlePoster(getCurrentBoardBattle(board, "progress"));
+    };
+
+    document.getElementById("btnShareAggregate").onclick = () => {
+      if (selectedRecordIds.size === 0) {
+        showToast("请先勾选至少 1 局已结算战绩");
+        return;
+      }
+      drawBattlePoster(getAggregateBattle());
+      showToast(`已生成 ${selectedRecordIds.size} 局累计战绩海报`);
+    };
+
+    document.getElementById("btnDownloadPoster").onclick = () => {
+      const canvas = document.getElementById("posterCanvas");
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "tidemyst-battle-poster.png";
+      a.click();
+      showToast("已开始下载 1080×1440 战绩海报 PNG");
+    };
+
+    document.getElementById("btnCopyBattleLink").onclick = async () => {
+      const token = btoa(unescape(encodeURIComponent(JSON.stringify(currentPosterData || {}))));
+      const url = `https://danke.guaguahub.cn/tidemyst#battle=${token}`;
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {}
+      showToast("战绩链接 (#battle=...) 已复制！");
+    };
+
+    document.getElementById("btnExportJson").onclick = () => {
+      const blob = new Blob([JSON.stringify({ boards, settledRecords }, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "tidemyst-backup.json";
+      a.click();
+      showToast("已导出包含最终战绩的 JSON 备份");
+    };
+
+    function showToast(msg) {
+      const el = document.getElementById("toastBar");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => el.classList.remove("show"), 2600);
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>

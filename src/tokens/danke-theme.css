@@ -1,0 +1,101 @@
+/* ==========================================================================
+   Danke Ecosystem Design System Tokens — Scheme 4 (Editorial Gazette)
+   Default: Warm Alabaster + Pine Teal (Light)
+   Alternate: Deep Stone + Mint Teal (Dark)
+   ========================================================================== */
+
+@import "./danke-quality.css";
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --dk-bg-canvas: #fafaf7;
+  --dk-bg-surface: #ffffff;
+  --dk-bg-elevated: #f2f1eb;
+
+  --dk-border-subtle: #e4e2da;
+  --dk-border-strong: #d6d3cd;
+
+  --dk-ink-primary: #18181b;
+  --dk-ink-secondary: #3f3f46;
+  --dk-ink-muted: #57534e;
+
+  --dk-accent-primary: #0f766e;
+  --dk-accent-primary-hover: #0d9488;
+  --dk-accent-primary-fg: #ffffff;
+  --dk-accent-primary-soft: #e6f4f1;
+
+  --dk-accent-warm: #c2410c;
+  --dk-accent-warm-soft: #fff0e8;
+  --dk-accent-warm-ink: #9a3412;
+
+  --dk-info: #1d6ce0;
+  --dk-info-soft: #e8f1fd;
+  --dk-success: #059669;
+  --dk-success-soft: #e6f7f0;
+  --dk-warning: #d97706;
+  --dk-warning-soft: #fef3c7;
+  --dk-danger: #d93855;
+  --dk-danger-soft: #fce8ec;
+
+  --dk-shadow-card: 0 1px 2px rgba(24, 24, 27, 0.04);
+  --dk-shadow-raised: 0 6px 20px rgba(24, 24, 27, 0.08);
+  --dk-focus-ring: 0 0 0 2px var(--dk-bg-canvas), 0 0 0 4px var(--dk-accent-primary);
+
+  --dk-radius-sm: 6px;
+  --dk-radius-md: 10px;
+  --dk-radius-lg: 14px;
+}
+
+[data-theme='dark'],
+.dark {
+  color-scheme: dark;
+
+  --dk-bg-canvas: #121315;
+  --dk-bg-surface: #1a1c1f;
+  --dk-bg-elevated: #22252a;
+
+  --dk-border-subtle: #2d3036;
+  --dk-border-strong: #3e434c;
+
+  --dk-ink-primary: #f4f4f0;
+  --dk-ink-secondary: #d4d4ce;
+  --dk-ink-muted: #a8a29e;
+
+  --dk-accent-primary: #2dd4bf;
+  --dk-accent-primary-hover: #5eead4;
+  --dk-accent-primary-fg: #0a1917;
+  --dk-accent-primary-soft: #112c29;
+
+  --dk-accent-warm: #fb923c;
+  --dk-accent-warm-soft: #2d1c13;
+  --dk-accent-warm-ink: #fdba74;
+
+  --dk-info: #5ca0ff;
+  --dk-info-soft: #14233a;
+  --dk-success: #10b981;
+  --dk-success-soft: #112921;
+  --dk-warning: #f59e0b;
+  --dk-warning-soft: #2c2110;
+  --dk-danger: #fe4c6a;
+  --dk-danger-soft: #31141c;
+
+  --dk-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --dk-shadow-raised: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
+.dk-num {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background-color: var(--dk-accent-primary);
+  color: var(--dk-accent-primary-fg);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--dk-focus-ring);
+}
+
